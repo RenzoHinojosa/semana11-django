@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio · Tienda Django{% endblock %}
+{% block nav_home %}on{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="wrap">
+        <span class="tag"><svg class="ic sm"><use href="#i-spark"/></svg> Django 5 · Arquitectura MTV</span>
+        <h1>{{ titulo }}</h1>
+        <p>Explora nuestro catálogo de tecnología, hogar, oficina y deporte, gestionado con el ORM de Django.</p>
+        <a href="{% url 'catalogo:catalogo' %}" class="btn p">Ver catálogo <svg class="ic sm"><use href="#i-arrow"/></svg></a>
+        <a href="{% url 'catalogo:catalogo' %}?categoria=tecnologia" class="btn g">Ofertas en tecnología</a>
+    </div>
+</section>
+
+<div class="wrap">
+    <div class="stats">
+        <div class="stat"><div class="sic"><svg class="ic"><use href="#i-box"/></svg></div><div><b>{{ total_productos }}</b><span>Productos registrados</span></div></div>
+        <div class="stat"><div class="sic"><svg class="ic"><use href="#i-check"/></svg></div><div><b>{{ disponibles }}</b><span>Disponibles ahora</span></div></div>
+        <div class="stat"><div class="sic"><svg class="ic"><use href="#i-layers"/></svg></div><div><b>4</b><span>Categorías</span></div></div>
+    </div>
+
+
+</div>
+{% endblock %}

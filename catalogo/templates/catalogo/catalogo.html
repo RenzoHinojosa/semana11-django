@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} · Tienda Django{% endblock %}
+{% block nav_cat %}on{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <div class="head">
+        <h1>{{ titulo }}</h1>
+        <p class="sub">{{ page_obj.paginator.count }} producto{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }}</p>
+    </div>
+
+    <div class="bar">
+        <div class="pills">
+            <a href="{% url 'catalogo:catalogo' %}" class="{% if not categoria_actual %}on{% endif %}">Todas</a>
+            {% for valor, etiqueta in categorias %}
+                <a href="?categoria={{ valor }}" class="{% if categoria_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
+            {% endfor %}
+        </div>
+        <form class="search" method="get">
+            {% if categoria_actual %}<input type="hidden" name="categoria" value="{{ categoria_actual }}">{% endif %}
+            <input type="search" name="q" value="{{ q }}" placeholder="Buscar: audifono, laptop, silla...">
+            <button type="submit"><svg class="ic sm"><use href="#i-search"/></svg> Buscar</button>
+        </form>
+    </div>
+
+    {% if productos %}
+    <div class="grid">
+        {% for p in productos %}
+        <article class="pc">
+            <div class="pic c-{{ p.categoria }}">
+                <span class="ico"><svg class="ic xl"><use href="#i-{% if p.categoria == 'tecnologia' %}laptop{% elif p.categoria == 'hogar' %}home{% elif p.categoria == 'oficina' %}brief{% else %}dumb{% endif %}"/></svg></span>
+                {% if p.imagen_url %}<img src="{{ p.imagen_url }}" alt="{{ p.nombre|title }}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">{% elif p.wiki_titulo %}<img data-wiki="{{ p.wiki_titulo }}" alt="{{ p.nombre|title }}" onerror="this.remove()">{% endif %}
+                {% if p.disponible %}<span class="st ok">Disponible</span>{% else %}<span class="st no">Agotado</span>{% endif %}
+            </div>
+            <div class="body">
+                <span class="cat">{{ p.get_categoria_display }}</span>
+                <h3>{{ p.nombre|title }}</h3>
+                <p>{{ p.descripcion|truncatechars:70 }}</p>
+                <div class="price"><small>S/</small>{{ p.precio|floatformat:2 }}</div>
+                <div class="meter {% if p.stock == 0 %}zero{% elif p.stock_bajo %}low{% endif %}"><i style="width:{% widthratio p.stock 50 100 %}%"></i></div>
+                <div class="foot">
+                    <span>{{ p.stock }} en stock{% if p.stock_bajo and p.disponible %} · <span class="lw"><svg class="ic xs"><use href="#i-alert"/></svg> ¡Quedan pocos!</span>{% endif %}</span>
+                    <span>{{ p.fecha_creacion|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <div class="pag">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q }}{% endif %}">← Anterior</a>{% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if q %}&q={{ q }}{% endif %}">Siguiente →</a>{% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty"><h3>Sin resultados</h3><p>Prueba con otra búsqueda o ejecuta <code>python manage.py poblar</code>.</p></div>
+    {% endif %}
+</div>
+<script>
+/* Busca en Wikipedia la foto del objeto de cada producto (una consulta por artículo). */
+(function () {
+    var cache = {};
+    document.querySelectorAll('img[data-wiki]').forEach(function (img) {
+        var titulo = img.dataset.wiki;
+        cache[titulo] = cache[titulo] || fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(titulo))
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .catch(function () { return null; });
+        cache[titulo].then(function (d) {
+            var url = d && d.thumbnail && d.thumbnail.source;
+            if (url) { img.src = url.replace('/320px-', '/640px-').replace(/\/\d+px-/g, '/640px-'); } else { img.remove(); }
+        });
+    });
+})();
+</script>
+{% endblock %}
